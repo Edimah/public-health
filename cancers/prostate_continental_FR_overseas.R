@@ -42,37 +42,60 @@ write_csv(french_incidence, here::here("public-health", "data", "french_prostate
 ############################################################
 
 comparison <- french_incidence %>%
-    mutate(region_type = if_else(Label == "France (metropolitan)", "Metropolitan France", "Overseas territories")) %>%
-    mutate(Label = forcats::fct_reorder(Label, `ASR (World)`)) %>%
-    mutate(label_en = str_remove(Label, "^France,\\s*")) # drop leading “France, ”
+    mutate(
+        region_type = if_else(
+            Label == "France (metropolitan)",
+            "Metropolitan France",
+            "Overseas territories"
+        ),
+        label_en = case_when(
+            Label == "France (metropolitan)" ~ "Metropolitan France",
+            str_detect(Label, "^France,\\s*") ~ str_remove(Label, "^France,\\s*"),
+            str_detect(Label, "^French\\s") ~ str_replace(Label, "^French\\s", ""),
+            TRUE ~ Label
+        )
+    )
+
+custom_theme <- theme_minimal(base_size = 14) +
+    theme(
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, color = "#333"),
+        axis.text.y = element_text(color = "#333"),
+        axis.title.y = element_text(margin = margin(r = 10)), # push label away from plot
+        plot.title.position = "plot",
+        plot.title = element_text(face = "bold", lineheight = 1.1),
+        plot.subtitle = element_text(margin = margin(b = 10)),
+        plot.caption = element_text(color = "#555", margin = margin(t = 12)),
+        plot.margin = margin(t = 20, r = 20, b = 20, l = 30), # add top margin
+        legend.position = "none"
+    )
+
 
 # English version
 p_asr_en <- ggplot(
     comparison,
     aes(
-        x = fct_reorder(label_en, `ASR (World)`), y = `ASR (World)`,
+        x = forcats::fct_reorder(label_en, `ASR (World)`), y = `ASR (World)`,
         fill = region_type
     )
 ) +
     geom_col(width = 0.7) +
     scale_fill_manual(values = c(
-        "Metropolitan France" = "grey60",
-        "Overseas territories" = "#2c7fb8"
+        "Metropolitan France" = "#b8b8b8",
+        "Overseas territories" = "#045a8d"
     )) +
     labs(
-        x = NULL, y = "ASR (World) per 100k",
-        title = "Age-standardized rate (ASR) for prostate cancer incidence in continental and overseas France",
+        x = NULL,
+        y = "ASR (World) per 100k",
+        title = "Age-standardised rate (ASR) for prostate cancer incidence\nin continental and overseas France",
+        subtitle = "Globocan 2022 age-standardised rates (per 100,000 population)",
         caption = "Source: IARC Globocan 2022"
     ) +
-    theme_minimal(base_size = 13) +
-    theme(
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none"
-    )
+    custom_theme
 
-# SAVING THE PLOTS #
 
-# English version
+# Saving english version
 output_dir <- here::here("public-health", "exports")
 
 ggsave(
@@ -80,7 +103,7 @@ ggsave(
     plot = p_asr_en,
     width = 8, height = 5, dpi = 320, bg = "white"
 )
-# French version
+# Plotting French version
 comparison_fr <- comparison %>%
     mutate(
         label_fr = case_when(
@@ -89,8 +112,6 @@ comparison_fr <- comparison %>%
             Label == "France, La Réunion" ~ "La Réunion",
             Label == "France, Guadeloupe" ~ "Guadeloupe",
             Label == "France, Martinique" ~ "Martinique",
-            Label == "France, Mayotte" ~ "Mayotte",
-            Label == "France, New Caledonia" ~ "Nouvelle-Calédonie",
             Label == "French Polynesia" ~ "Polynésie française",
             TRUE ~ Label
         )
@@ -99,25 +120,23 @@ comparison_fr <- comparison %>%
 p_asr_fr <- ggplot(
     comparison_fr,
     aes(
-        x = fct_reorder(label_fr, `ASR (World)`), y = `ASR (World)`,
+        x = forcats::fct_reorder(label_fr, `ASR (World)`), y = `ASR (World)`,
         fill = region_type
     )
 ) +
     geom_col(width = 0.7) +
     scale_fill_manual(values = c(
-        "Metropolitan France" = "grey60",
-        "Overseas territories" = "#2c7fb8"
+        "Metropolitan France" = "#b8b8b8",
+        "Overseas territories" = "#045a8d"
     )) +
     labs(
-        x = NULL, y = "Taux standardisé mondial (pour 100 000 habitants)",
-        title = "Incidence du cancer de la prostate en France métropolitaine et d'Outre-mer",
+        x = NULL,
+        y = "Taux standardisé (mondial),\npour 100 000 habitants",
+        title = "Incidence standardisée du cancer de la prostate\nFrance métropolitaine et d'Outre-mer",
+        subtitle = "Taux standardisés Globocan 2022 (pour 100 000 habitants)",
         caption = "Source: IARC Globocan 2022"
     ) +
-    theme_minimal(base_size = 13) +
-    theme(
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none"
-    )
+    custom_theme
 
 ggsave(
     filename = file.path(output_dir, "prostate_incidence_france_overseas_fr.png"),
