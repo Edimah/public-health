@@ -42,21 +42,33 @@ write_csv(french_incidence, here::here("public-health", "data", "french_prostate
 ############################################################
 
 comparison <- french_incidence %>%
-    mutate(region_type = if_else(Label == "France, metropolitan", "Metropolitan France", "Overseas territories")) %>%
-    mutate(Label = forcats::fct_reorder(Label, `ASR (World)`))
+    mutate(region_type = if_else(Label == "France (metropolitan)", "Metropolitan France", "Overseas territories")) %>%
+    mutate(Label = forcats::fct_reorder(Label, `ASR (World)`)) %>%
+    mutate(label_en = str_remove(Label, "^France,\\s*")) # drop leading “France, ”
 
-p_asr_en <- ggplot(comparison, aes(Label, `ASR (World)`, fill = region_type)) +
+# English version
+p_asr_en <- ggplot(
+    comparison,
+    aes(
+        x = fct_reorder(label_en, `ASR (World)`), y = `ASR (World)`,
+        fill = region_type
+    )
+) +
     geom_col(width = 0.7) +
-    scale_fill_manual(values = c("Metropolitan France" = "grey60", "Overseas territories" = "#2c7fb8")) +
-    coord_flip() +
+    scale_fill_manual(values = c(
+        "Metropolitan France" = "grey60",
+        "Overseas territories" = "#2c7fb8"
+    )) +
     labs(
-        title = "Age-standardized prostate cancer incidence (Globocan 2022)",
-        x = NULL, y = "ASR (World), per 100k",
+        x = NULL, y = "ASR (World) per 100k",
+        title = "Age-standardized rate (ASR) for prostate cancer incidence in continental and overseas France",
         caption = "Source: IARC Globocan 2022"
     ) +
     theme_minimal(base_size = 13) +
-    theme(legend.position = "top", panel.grid.major.y = element_blank())
-
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none"
+    )
 
 # SAVING THE PLOTS #
 
@@ -69,16 +81,43 @@ ggsave(
     width = 8, height = 5, dpi = 320, bg = "white"
 )
 # French version
-p_asr_fr <- p_asr_en +
-    labs(
-        title = "Incidence du cancer de la prostate (France et territoires)",
-        y = "Taux standardisé mondial (pour 100 000)",
-        caption = "Source : IARC Globocan 2022"
-    ) +
+comparison_fr <- comparison %>%
+    mutate(
+        label_fr = case_when(
+            Label == "France (metropolitan)" ~ "France métropolitaine",
+            Label == "French Guyana" ~ "Guyane française",
+            Label == "France, La Réunion" ~ "La Réunion",
+            Label == "France, Guadeloupe" ~ "Guadeloupe",
+            Label == "France, Martinique" ~ "Martinique",
+            Label == "France, Mayotte" ~ "Mayotte",
+            Label == "France, New Caledonia" ~ "Nouvelle-Calédonie",
+            Label == "French Polynesia" ~ "Polynésie française",
+            TRUE ~ Label
+        )
+    )
+
+p_asr_fr <- ggplot(
+    comparison_fr,
+    aes(
+        x = fct_reorder(label_fr, `ASR (World)`), y = `ASR (World)`,
+        fill = region_type
+    )
+) +
+    geom_col(width = 0.7) +
     scale_fill_manual(values = c(
-        "France métropolitaine" = "grey60",
-        "Territoires d'outre-mer" = "#2c7fb8"
-    ))
+        "Metropolitan France" = "grey60",
+        "Overseas territories" = "#2c7fb8"
+    )) +
+    labs(
+        x = NULL, y = "Taux standardisé mondial (pour 100 000 habitants)",
+        title = "Incidence du cancer de la prostate en France métropolitaine et d'Outre-mer",
+        caption = "Source: IARC Globocan 2022"
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none"
+    )
 
 ggsave(
     filename = file.path(output_dir, "prostate_incidence_france_overseas_fr.png"),
