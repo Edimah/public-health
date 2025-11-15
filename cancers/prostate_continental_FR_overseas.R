@@ -4,6 +4,7 @@ library(tidyr)
 library(stringr)
 library(ggplot2)
 library(forcats)
+library(knitr)
 
 ###############################
 # DATA IMPORT AND PREPARATION #
@@ -158,3 +159,9 @@ tsm_table_fr <- comparison_fr %>%
 
 write_csv(asm_table_en, file.path(output_dir, "prostate_asr_table_en.csv"))
 write_csv(tsm_table_fr, file.path(output_dir, "prostate_tsm_table_fr.csv"))
+
+asm_table_md <- kable(asm_table_en, format = "pipe", align = c("l", "r"))
+tsm_table_md <- kable(tsm_table_fr, format = "pipe", align = c("l", "r"))
+
+writeLines(asm_table_md, file.path(output_dir, "prostate_asr_table_en.md"))
+writeLines(tsm_table_md, file.path(output_dir, "prostate_tsm_table_fr.md"))
