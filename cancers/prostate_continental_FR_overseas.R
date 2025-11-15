@@ -51,7 +51,6 @@ comparison <- french_incidence %>%
         label_en = case_when(
             Label == "France (metropolitan)" ~ "Metropolitan France",
             str_detect(Label, "^France,\\s*") ~ str_remove(Label, "^France,\\s*"),
-            str_detect(Label, "^French\\s") ~ str_replace(Label, "^French\\s", ""),
             TRUE ~ Label
         )
     )
