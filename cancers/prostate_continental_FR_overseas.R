@@ -130,9 +130,9 @@ p_asr_fr <- ggplot(
     )) +
     labs(
         x = NULL,
-        y = "Taux standardisé (mondial),\npour 100 000 habitants",
+        y = "TSM pour 100 000 habitants",
         title = "Incidence standardisée du cancer de la prostate\nFrance métropolitaine et d'Outre-mer",
-        subtitle = "Taux standardisés Globocan 2022 (pour 100 000 habitants)",
+        subtitle = "Taux Standardisés Monde (TSM) Globocan 2022 (pour 100 000 habitants)",
         caption = "Source: IARC Globocan 2022"
     ) +
     custom_theme
@@ -142,3 +142,19 @@ ggsave(
     plot = p_asr_fr,
     width = 8, height = 5, dpi = 320, bg = "white"
 )
+
+
+#########################################
+# EXPORTING SUMMARY TABLES FOR THE BLOG #
+#########################################
+
+asm_table_en <- comparison %>%
+    select(Region = label_en, `ASR (World)`) %>%
+    arrange(desc(`ASR (World)`))
+
+tsm_table_fr <- comparison_fr %>%
+    select(`Région` = label_fr, `TSM (monde)` = `ASR (World)`) %>%
+    arrange(desc(`TSM (monde)`))
+
+write_csv(asm_table_en, file.path(output_dir, "prostate_asr_table_en.csv"))
+write_csv(tsm_table_fr, file.path(output_dir, "prostate_tsm_table_fr.csv"))
