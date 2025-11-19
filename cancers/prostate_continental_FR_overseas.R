@@ -134,7 +134,7 @@ p_asr_fr <- ggplot(
         y = "TSM",
         title = "Incidence standardisée du cancer de la prostate\nFrance métropolitaine et d'Outre-mer",
         subtitle = "Taux Standardisés Monde (TSM) Globocan 2022 (pour 100 000 habitants)",
-        caption = "Source: IARC Globocan 2022"
+        caption = "Graphe : Edimah SYNESIUS SONGO \nDonnées: IARC GLOBOCAN 2022"
     ) +
     custom_theme
 
